@@ -17,9 +17,17 @@ app.get('/api/health', (c) => {
 
 // List homes (for frontend selection)
 app.get('/api/homes', async (c) => {
-  const result = await c.env.DB.prepare('SELECT id, name FROM homes ORDER BY rowid ASC').all<{
+  const result = await c.env.DB.prepare(`
+    SELECT
+      h.id,
+      h.name,
+      (SELECT COUNT(*) FROM members m WHERE m.home_id = h.id) AS memberCount
+    FROM homes h
+    ORDER BY h.rowid DESC
+  `).all<{
     id: string
     name: string
+    memberCount: number
   }>()
 
   return c.json({ homes: result.results })

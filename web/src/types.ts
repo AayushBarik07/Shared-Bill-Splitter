@@ -1,6 +1,7 @@
 export type Home = {
   id: string
   name: string
+  memberCount?: number
 }
 
 export type HomeDetail = {
