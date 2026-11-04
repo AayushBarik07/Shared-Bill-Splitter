@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import type { Balance, Bill, Home, HomeDetail } from '../types'
 import {
   CartIcon,
   CheckCircleIcon,
@@ -33,7 +32,7 @@ export interface FlatExpense {
   shares: CandidateShare[]
 }
 
-interface DemoFlat {
+export interface FlatGroup {
   id: string
   name: string
   members: string[]
@@ -64,15 +63,15 @@ function calculateCandidateShares(
   })
 }
 
-// Initial demo flats pre-seeded with rich individual candidate shares
-const INITIAL_DEMO_FLATS: DemoFlat[] = [
+// The 3 dedicated flats with exact dedicated members and authentic expenses
+const DEFAULT_FLATS: FlatGroup[] = [
   {
-    id: 'demo-flat-4b',
+    id: 'flat-4b',
     name: 'Flat 4B',
     members: ['Asha', 'Ben', 'Chitra'],
     bills: [
       {
-        id: 'b-1',
+        id: 'bill-4b-1',
         title: 'Rent',
         totalRupees: 2000,
         icon: 'other',
@@ -80,7 +79,7 @@ const INITIAL_DEMO_FLATS: DemoFlat[] = [
         shares: calculateCandidateShares(['Asha', 'Ben', 'Chitra'], 2000, ['Asha', 'Ben']),
       },
       {
-        id: 'b-2',
+        id: 'bill-4b-2',
         title: 'Electricity Bill',
         totalRupees: 2150,
         icon: 'internet',
@@ -88,7 +87,7 @@ const INITIAL_DEMO_FLATS: DemoFlat[] = [
         shares: calculateCandidateShares(['Asha', 'Ben', 'Chitra'], 2150, ['Ben', 'Chitra']),
       },
       {
-        id: 'b-3',
+        id: 'bill-4b-3',
         title: 'Weekend Groceries',
         totalRupees: 1840,
         icon: 'groceries',
@@ -102,12 +101,12 @@ const INITIAL_DEMO_FLATS: DemoFlat[] = [
     ],
   },
   {
-    id: 'demo-flat-302',
+    id: 'flat-302',
     name: 'Flat 302',
     members: ['Rahul', 'Priya', 'Kabir', 'Sneha'],
     bills: [
       {
-        id: 'b-4',
+        id: 'bill-302-1',
         title: 'High Speed WiFi & OTT',
         totalRupees: 1999,
         icon: 'internet',
@@ -118,7 +117,7 @@ const INITIAL_DEMO_FLATS: DemoFlat[] = [
         ]),
       },
       {
-        id: 'b-5',
+        id: 'bill-302-2',
         title: 'Monthly Groceries & Dairy',
         totalRupees: 3600,
         icon: 'groceries',
@@ -129,24 +128,58 @@ const INITIAL_DEMO_FLATS: DemoFlat[] = [
           'Kabir',
         ]),
       },
+      {
+        id: 'bill-302-3',
+        title: 'Maintenance & Water',
+        totalRupees: 1400,
+        icon: 'other',
+        paidBy: 'Kabir',
+        shares: calculateCandidateShares(['Rahul', 'Priya', 'Kabir', 'Sneha'], 1400, [
+          'Kabir',
+          'Sneha',
+        ]),
+      },
     ],
   },
   {
-    id: 'demo-flat-2a',
+    id: 'flat-2a',
     name: 'Flat 2A',
     members: ['Dev', 'Arjun'],
     bills: [
       {
-        id: 'b-6',
+        id: 'bill-2a-1',
         title: 'Water Can & Cleaning Supplies',
         totalRupees: 650,
         icon: 'other',
         paidBy: 'Dev',
         shares: calculateCandidateShares(['Dev', 'Arjun'], 650, ['Dev']),
       },
+      {
+        id: 'bill-2a-2',
+        title: 'Gas Cylinder & Utilities',
+        totalRupees: 950,
+        icon: 'other',
+        paidBy: 'Arjun',
+        shares: calculateCandidateShares(['Dev', 'Arjun'], 950, ['Arjun', 'Dev']),
+      },
     ],
   },
 ]
+
+function getInitialFlats(): FlatGroup[] {
+  try {
+    const saved = localStorage.getItem('bill_splitter_flats_v2')
+    if (saved) {
+      const parsed = JSON.parse(saved) as FlatGroup[]
+      if (Array.isArray(parsed) && parsed.length >= 3) {
+        return parsed
+      }
+    }
+  } catch {
+    // Fallback to defaults
+  }
+  return DEFAULT_FLATS
+}
 
 export function FlatExperienceModal({
   isOpen,
@@ -156,13 +189,21 @@ export function FlatExperienceModal({
   const [view, setView] = useState<'list' | 'detail' | 'create'>(
     initialMode === 'create' ? 'create' : 'list',
   )
-  const [_flats, setFlats] = useState<Home[]>([])
-  const [selectedFlatId, setSelectedFlatId] = useState<string>('demo-flat-4b')
-  const [localFlats, setLocalFlats] = useState<DemoFlat[]>(INITIAL_DEMO_FLATS)
+  const [flats, setFlats] = useState<FlatGroup[]>(getInitialFlats)
+  const [selectedFlatId, setSelectedFlatId] = useState<string>('flat-4b')
+
+  // Save to localStorage when flats change
+  useEffect(() => {
+    try {
+      localStorage.setItem('bill_splitter_flats_v2', JSON.stringify(flats))
+    } catch {
+      // Ignore storage error
+    }
+  }, [flats])
 
   // Track expanded accordion expense IDs
   const [expandedExpenseIds, setExpandedExpenseIds] = useState<Set<string>>(
-    new Set(['b-1']), // default first expense expanded for instant preview
+    new Set(['bill-4b-1', 'bill-302-1', 'bill-2a-1']),
   )
 
   // Dedicated Candidate Breakdown Pop-up modal state
@@ -182,83 +223,20 @@ export function FlatExperienceModal({
   // Add flatmate state
   const [newFlatmateName, setNewFlatmateName] = useState('')
 
-  // Backend API states
-  const [apiFlatDetail, setApiFlatDetail] = useState<HomeDetail | null>(null)
-  const [_apiBills, setApiBills] = useState<Bill[]>([])
-  const [_apiBalances, setApiBalances] = useState<Balance[]>([])
-  const [useBackend, setUseBackend] = useState<boolean>(false)
-
-  // Fetch homes from API if available
-  useEffect(() => {
-    if (!isOpen) return
-
-    let isMounted = true
-    const checkApi = async () => {
-      try {
-        const res = await fetch('/api/homes')
-        if (res.ok) {
-          const data = (await res.json()) as { homes: Home[] }
-          if (isMounted && data.homes && data.homes.length > 0 && data.homes[0]) {
-            setFlats(data.homes)
-            setUseBackend(true)
-            setSelectedFlatId(data.homes[0].id)
-            return
-          }
-        }
-      } catch {
-        // Fallback to local demo flats
-      }
-      if (isMounted) {
-        setUseBackend(false)
-        setSelectedFlatId('demo-flat-4b')
-      }
-    }
-
-    checkApi()
-    return () => {
-      isMounted = false
-    }
-  }, [isOpen])
-
-  // Fetch detail if backend is enabled
-  useEffect(() => {
-    if (!useBackend || !selectedFlatId || selectedFlatId.startsWith('demo-')) return
-
-    const loadBackendData = async () => {
-      try {
-        const [homeRes, billsRes, balancesRes] = await Promise.all([
-          fetch(`/api/homes/${selectedFlatId}`),
-          fetch(`/api/homes/${selectedFlatId}/bills`),
-          fetch(`/api/homes/${selectedFlatId}/balances`),
-        ])
-        if (homeRes.ok && billsRes.ok && balancesRes.ok) {
-          const homeData = (await homeRes.json()) as HomeDetail
-          const billsData = (await billsRes.json()) as { bills: Bill[] }
-          const balancesData = (await balancesRes.json()) as { balances: Balance[] }
-          setApiFlatDetail(homeData)
-          setApiBills(billsData.bills)
-          setApiBalances(balancesData.balances)
-        }
-      } catch {
-        // Keep current state
-      }
-    }
-    loadBackendData()
-  }, [selectedFlatId, useBackend])
-
   if (!isOpen) return null
 
-  // Active flat object
-  const activeLocalFlat = localFlats.find((f) => f.id === selectedFlatId) || localFlats[0]
-  const currentFlatName =
-    useBackend && apiFlatDetail ? apiFlatDetail.name : activeLocalFlat?.name || 'Flat 4B'
-  const currentMembers =
-    useBackend && apiFlatDetail
-      ? apiFlatDetail.members.map((m) => m.name)
-      : activeLocalFlat?.members || []
+  // Active flat object - strictly derived from currently selected flat ID
+  const fallbackFlat: FlatGroup = DEFAULT_FLATS[0] ?? {
+    id: 'flat-4b',
+    name: 'Flat 4B',
+    members: ['Asha', 'Ben', 'Chitra'],
+    bills: [],
+  }
+  const currentFlat: FlatGroup =
+    flats.find((f) => f.id === selectedFlatId) ?? flats[0] ?? fallbackFlat
 
-  // Total balance calculation
-  const totalRupees = activeLocalFlat?.bills.reduce((sum, b) => sum + b.totalRupees, 0) || 0
+  // Total balance calculation for this specific flat
+  const totalRupees = currentFlat.bills.reduce((sum, b) => sum + b.totalRupees, 0)
 
   // Toggle accordion expansion for an expense
   const toggleExpenseAccordion = (expenseId: string) => {
@@ -275,9 +253,9 @@ export function FlatExperienceModal({
 
   // Toggle payment status for an individual candidate within an expense
   const handleToggleCandidatePayment = (expenseId: string, candidateName: string) => {
-    setLocalFlats((prev) =>
-      prev.map((flat) => {
-        if (flat.id !== selectedFlatId) return flat
+    setFlats((prevFlats) =>
+      prevFlats.map((flat) => {
+        if (flat.id !== currentFlat.id) return flat
         const updatedBills = flat.bills.map((bill) => {
           if (bill.id !== expenseId) return bill
           const updatedShares = bill.shares.map((share) => {
@@ -295,7 +273,7 @@ export function FlatExperienceModal({
       }),
     )
 
-    // Also update popup expense state if open
+    // Update popup expense state if open
     if (popupExpense && popupExpense.id === expenseId) {
       setPopupExpense((prev) => {
         if (!prev) return null
@@ -315,9 +293,9 @@ export function FlatExperienceModal({
 
   // Settle all or Reset all candidates for an expense
   const handleSetAllCandidatesPaid = (expenseId: string, markPaid: boolean) => {
-    setLocalFlats((prev) =>
-      prev.map((flat) => {
-        if (flat.id !== selectedFlatId) return flat
+    setFlats((prevFlats) =>
+      prevFlats.map((flat) => {
+        if (flat.id !== currentFlat.id) return flat
         const updatedBills = flat.bills.map((bill) => {
           if (bill.id !== expenseId) return bill
           const updatedShares = bill.shares.map((share) => ({
@@ -346,13 +324,14 @@ export function FlatExperienceModal({
     }
   }
 
-  const handleCreateFlatSubmit = async (e: React.FormEvent) => {
+  // Create a new flat
+  const handleCreateFlatSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setCreateError(null)
 
     const name = newFlatName.trim()
     if (!name) {
-      setCreateError('Please enter a flat name (e.g., Flat 4B)')
+      setCreateError('Please enter a flat name (e.g., Flat 5C, Flat 101)')
       return
     }
 
@@ -361,73 +340,46 @@ export function FlatExperienceModal({
       .map((m) => m.trim())
       .filter((m) => m.length > 0)
 
-    const initialMembers = members.length > 0 ? members : ['Asha', 'Ben', 'Chitra']
+    const initialMembers = members.length > 0 ? members : ['Asha', 'Ben']
 
-    if (useBackend) {
-      try {
-        const res = await fetch('/api/homes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name }),
-        })
-        if (res.ok) {
-          const newHome = (await res.json()) as Home
-          for (const memberName of initialMembers) {
-            await fetch(`/api/homes/${newHome.id}/members`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name: memberName }),
-            })
-          }
-          setFlats((prev) => [newHome, ...prev])
-          setSelectedFlatId(newHome.id)
-          setView('detail')
-          setNewFlatName('')
-          setNewMembersList('')
-          return
-        }
-      } catch {
-        // Fallback to local
-      }
-    }
-
-    // Local creation
     const newId = `flat-${Date.now()}`
-    const createdFlat: DemoFlat = {
+    const createdFlat: FlatGroup = {
       id: newId,
       name,
       members: initialMembers,
       bills: [],
     }
-    setLocalFlats((prev) => [createdFlat, ...prev])
+
+    setFlats((prev) => [createdFlat, ...prev])
     setSelectedFlatId(newId)
     setView('detail')
     setNewFlatName('')
     setNewMembersList('')
   }
 
+  // Add a new shared expense to the currently active flat
   const handleAddExpenseSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setNewExpenseError(null)
 
     const title = newExpenseTitle.trim()
-    const amount = Number.parseFloat(newExpenseAmount)
+    const parsedAmount = Number.parseFloat(newExpenseAmount)
 
     if (!title) {
-      setNewExpenseError('Please enter an expense title')
+      setNewExpenseError('Please enter an expense title (e.g. Electricity, Groceries)')
       return
     }
-    if (Number.isNaN(amount) || amount <= 0) {
-      setNewExpenseError('Please enter a valid amount in ₹')
+    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+      setNewExpenseError('Please enter a valid amount in ₹ (e.g. 1500)')
       return
     }
 
-    const payer = newExpensePayer.trim() || currentMembers[0] || 'Flatmate'
+    const payer = newExpensePayer.trim() || currentFlat.members[0] || 'Flatmate'
+    const roundedAmount = Math.round(parsedAmount)
     const newExpenseId = `bill-${Date.now()}`
-    const roundedAmount = Math.round(amount)
 
-    // Calculate individual candidate shares for all current members
-    const newShares = calculateCandidateShares(currentMembers, roundedAmount, [payer])
+    // Calculate fair candidate shares for every member in this flat
+    const newShares = calculateCandidateShares(currentFlat.members, roundedAmount, [payer])
 
     const iconType =
       title.toLowerCase().includes('food') || title.toLowerCase().includes('dinner')
@@ -447,9 +399,10 @@ export function FlatExperienceModal({
       shares: newShares,
     }
 
-    setLocalFlats((prev) =>
-      prev.map((flat) => {
-        if (flat.id !== selectedFlatId) return flat
+    // Immediately update the flat's bills array
+    setFlats((prevFlats) =>
+      prevFlats.map((flat) => {
+        if (flat.id !== currentFlat.id) return flat
         return {
           ...flat,
           bills: [newBill, ...flat.bills],
@@ -457,35 +410,35 @@ export function FlatExperienceModal({
       }),
     )
 
-    // Automatically expand the newly created expense so candidates are visible immediately
+    // Expand the new expense immediately so candidate breakdown is in full view
     setExpandedExpenseIds((prev) => new Set([newExpenseId, ...prev]))
 
+    // Reset inputs
     setNewExpenseTitle('')
     setNewExpenseAmount('')
     setNewExpensePayer('')
   }
 
+  // Add a new flatmate to the currently active flat
   const handleAddFlatmateSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const name = newFlatmateName.trim()
     if (!name) return
 
-    setLocalFlats((prev) =>
-      prev.map((flat) => {
-        if (flat.id !== selectedFlatId) return flat
-        if (flat.members.includes(name)) return flat
-        const updatedMembers = [...flat.members, name]
+    if (currentFlat.members.includes(name)) return
 
-        // Re-split existing bills to include the new flatmate
+    const updatedMembers = [...currentFlat.members, name]
+
+    setFlats((prevFlats) =>
+      prevFlats.map((flat) => {
+        if (flat.id !== currentFlat.id) return flat
+
+        // Re-calculate candidate shares for existing bills with the new flatmate
         const updatedBills = flat.bills.map((bill) => {
-          const alreadyPaidCandidates = bill.shares.filter((s) => s.isPaid).map((s) => s.name)
+          const alreadyPaid = bill.shares.filter((s) => s.isPaid).map((s) => s.name)
           return {
             ...bill,
-            shares: calculateCandidateShares(
-              updatedMembers,
-              bill.totalRupees,
-              alreadyPaidCandidates,
-            ),
+            shares: calculateCandidateShares(updatedMembers, bill.totalRupees, alreadyPaid),
           }
         })
 
@@ -496,6 +449,7 @@ export function FlatExperienceModal({
         }
       }),
     )
+
     setNewFlatmateName('')
   }
 
@@ -541,7 +495,7 @@ export function FlatExperienceModal({
           <div className="modal-title-wrap">
             <FlatBuildingIcon size={24} color="#079B6B" />
             <h2 id="flat-modal-title" className="modal-title">
-              {currentFlatName}
+              {currentFlat.name}
             </h2>
             <span className="modal-badge">No Sign-up Required</span>
           </div>
@@ -600,75 +554,81 @@ export function FlatExperienceModal({
                   marginBottom: '24px',
                 }}
               >
-                {localFlats.map((flat) => (
-                  <button
-                    type="button"
-                    key={flat.id}
-                    onClick={() => {
-                      setSelectedFlatId(flat.id)
-                      setView('detail')
-                    }}
-                    style={{
-                      border:
-                        selectedFlatId === flat.id ? '2px solid #079B6B' : '1px solid #E4E9ED',
-                      backgroundColor: selectedFlatId === flat.id ? '#EFF9F4' : '#FFFFFF',
-                      borderRadius: '16px',
-                      padding: '18px',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                      textAlign: 'left',
-                      fontFamily: 'inherit',
-                      width: '100%',
-                    }}
-                  >
-                    <div
+                {flats.map((flat) => {
+                  const isSelected = selectedFlatId === flat.id
+                  return (
+                    <button
+                      type="button"
+                      key={flat.id}
+                      onClick={() => {
+                        setSelectedFlatId(flat.id)
+                        setView('detail')
+                        setNewExpenseError(null)
+                        setNewExpenseTitle('')
+                        setNewExpenseAmount('')
+                        setNewExpensePayer('')
+                      }}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        marginBottom: '8px',
+                        border: isSelected ? '2px solid #079B6B' : '1px solid #E4E9ED',
+                        backgroundColor: isSelected ? '#EFF9F4' : '#FFFFFF',
+                        borderRadius: '16px',
+                        padding: '18px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                        textAlign: 'left',
+                        fontFamily: 'inherit',
+                        width: '100%',
                       }}
                     >
                       <div
                         style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: '10px',
-                          backgroundColor: '#DDF8EC',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
+                          gap: '10px',
+                          marginBottom: '8px',
                         }}
                       >
-                        <FlatBuildingIcon size={20} color="#079B6B" />
-                      </div>
-                      <div>
                         <div
                           style={{
-                            fontWeight: 800,
-                            fontSize: '16px',
-                            color: '#101D2B',
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '10px',
+                            backgroundColor: '#DDF8EC',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                           }}
                         >
-                          {flat.name}
+                          <FlatBuildingIcon size={20} color="#079B6B" />
                         </div>
-                        <div style={{ fontSize: '12px', color: '#64748B' }}>
-                          {flat.members.length} members
+                        <div>
+                          <div
+                            style={{
+                              fontWeight: 800,
+                              fontSize: '16px',
+                              color: '#101D2B',
+                            }}
+                          >
+                            {flat.name}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#64748B' }}>
+                            {flat.members.length} members
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '13px',
-                        color: '#526174',
-                        marginTop: '10px',
-                      }}
-                    >
-                      Members: <span style={{ fontWeight: 600 }}>{flat.members.join(', ')}</span>
-                    </div>
-                  </button>
-                ))}
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          color: '#526174',
+                          marginTop: '10px',
+                        }}
+                      >
+                        Members: <span style={{ fontWeight: 600 }}>{flat.members.join(', ')}</span>
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
 
               <div
@@ -729,7 +689,7 @@ export function FlatExperienceModal({
                 <input
                   id="flat-name-input"
                   type="text"
-                  placeholder="e.g. Flat 4B, Flat 302, Green Ridge 2A"
+                  placeholder="e.g. Flat 5C, Flat 101, Green Ridge 2A"
                   value={newFlatName}
                   onChange={(e) => setNewFlatName(e.target.value)}
                   style={{
@@ -839,7 +799,7 @@ export function FlatExperienceModal({
                   <div style={{ marginTop: '8px' }}>
                     <span className="settled-badge">
                       <CheckCircleIcon size={13} color="#079B6B" />
-                      <span>{currentMembers.length} flatmates sharing</span>
+                      <span>{currentFlat.members.length} flatmates sharing</span>
                     </span>
                   </div>
                 </div>
@@ -871,7 +831,9 @@ export function FlatExperienceModal({
                     }}
                   >
                     ₹
-                    {Math.round(totalRupees / (currentMembers.length || 1)).toLocaleString('en-IN')}
+                    {Math.round(totalRupees / (currentFlat.members.length || 1)).toLocaleString(
+                      'en-IN',
+                    )}
                   </div>
                   <div
                     style={{
@@ -884,7 +846,7 @@ export function FlatExperienceModal({
                   </div>
                 </div>
 
-                {/* Flatmates Roster */}
+                {/* Flatmates Roster - Dedicated strictly to this flat */}
                 <div
                   style={{
                     backgroundColor: '#FFFFFF',
@@ -901,7 +863,7 @@ export function FlatExperienceModal({
                       marginBottom: '8px',
                     }}
                   >
-                    Flatmates ({currentMembers.length})
+                    Flatmates ({currentFlat.members.length})
                   </div>
                   <div
                     style={{
@@ -911,7 +873,7 @@ export function FlatExperienceModal({
                       marginBottom: '10px',
                     }}
                   >
-                    {currentMembers.map((m) => (
+                    {currentFlat.members.map((m) => (
                       <span
                         key={m}
                         style={{
@@ -975,7 +937,7 @@ export function FlatExperienceModal({
                     marginBottom: '12px',
                   }}
                 >
-                  + Record a New Shared Bill for {currentFlatName}
+                  + Record a New Shared Bill for {currentFlat.name}
                 </div>
 
                 {newExpenseError && (
@@ -1042,8 +1004,8 @@ export function FlatExperienceModal({
                       fontFamily: 'inherit',
                     }}
                   >
-                    <option value="">Paid by: {currentMembers[0] || 'You'}</option>
-                    {currentMembers.map((m) => (
+                    <option value="">Paid by: {currentFlat.members[0] || 'You'}</option>
+                    {currentFlat.members.map((m) => (
                       <option key={m} value={m}>
                         Paid by: {m}
                       </option>
@@ -1080,7 +1042,7 @@ export function FlatExperienceModal({
                         margin: 0,
                       }}
                     >
-                      Expenses in {currentFlatName}
+                      Expenses in {currentFlat.name}
                     </h4>
                     <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0 0' }}>
                       Click any expense to expand/collapse candidate payment details
@@ -1092,303 +1054,334 @@ export function FlatExperienceModal({
                       className="btn-secondary"
                       style={{ fontSize: '12px', padding: '5px 12px' }}
                       onClick={() => {
-                        if (expandedExpenseIds.size === activeLocalFlat?.bills.length) {
+                        if (expandedExpenseIds.size === currentFlat.bills.length) {
                           setExpandedExpenseIds(new Set())
                         } else {
-                          setExpandedExpenseIds(
-                            new Set(activeLocalFlat?.bills.map((b) => b.id) || []),
-                          )
+                          setExpandedExpenseIds(new Set(currentFlat.bills.map((b) => b.id)))
                         }
                       }}
                     >
-                      {expandedExpenseIds.size === activeLocalFlat?.bills.length
+                      {expandedExpenseIds.size === currentFlat.bills.length
                         ? 'Collapse All'
                         : 'Expand All'}
                     </button>
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                  }}
-                >
-                  {activeLocalFlat?.bills.map((bill) => {
-                    const isExpanded = expandedExpenseIds.has(bill.id)
-                    const totalCandidates = bill.shares.length
-                    const paidCandidatesCount = bill.shares.filter((s) => s.isPaid).length
-                    const isAllSettled =
-                      totalCandidates > 0 && paidCandidatesCount === totalCandidates
-                    const unpaidAmount = bill.shares
-                      .filter((s) => !s.isPaid)
-                      .reduce((sum, s) => sum + s.amountRupees, 0)
+                {currentFlat.bills.length === 0 ? (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '36px 20px',
+                      backgroundColor: '#FAFCFB',
+                      borderRadius: '14px',
+                      border: '1.5px dashed #CBD5E1',
+                      color: '#64748B',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '15px',
+                        fontWeight: 700,
+                        color: '#101D2B',
+                        marginBottom: '4px',
+                      }}
+                    >
+                      No expenses recorded yet in {currentFlat.name}
+                    </div>
+                    <div style={{ fontSize: '13px' }}>
+                      Add your first shared expense using the form above.
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                    }}
+                  >
+                    {currentFlat.bills.map((bill) => {
+                      const isExpanded = expandedExpenseIds.has(bill.id)
+                      const totalCandidates = bill.shares.length
+                      const paidCandidatesCount = bill.shares.filter((s) => s.isPaid).length
+                      const isAllSettled =
+                        totalCandidates > 0 && paidCandidatesCount === totalCandidates
+                      const unpaidAmount = bill.shares
+                        .filter((s) => !s.isPaid)
+                        .reduce((sum, s) => sum + s.amountRupees, 0)
 
-                    return (
-                      <div
-                        key={bill.id}
-                        className={`expense-accordion ${isExpanded ? 'expanded' : ''}`}
-                      >
-                        {/* EXPENSE MAIN ROW (CLICKABLE TO EXPAND) */}
-                        <button
-                          type="button"
-                          className="expense-main-row"
-                          onClick={() => toggleExpenseAccordion(bill.id)}
-                          style={{
-                            width: '100%',
-                            border: 'none',
-                            textAlign: 'left',
-                            fontFamily: 'inherit',
-                          }}
+                      return (
+                        <div
+                          key={bill.id}
+                          className={`expense-accordion ${isExpanded ? 'expanded' : ''}`}
                         >
-                          <div
+                          {/* EXPENSE MAIN ROW (CLICKABLE TO EXPAND) */}
+                          <button
+                            type="button"
+                            className="expense-main-row"
+                            onClick={() => toggleExpenseAccordion(bill.id)}
                             style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '12px',
+                              width: '100%',
+                              border: 'none',
+                              textAlign: 'left',
+                              fontFamily: 'inherit',
                             }}
                           >
                             <div
-                              className={`expense-icon-box ${
-                                bill.icon === 'groceries'
-                                  ? 'icon-purple'
-                                  : bill.icon === 'dinner'
-                                    ? 'icon-orange'
-                                    : 'icon-blue'
-                              }`}
-                            >
-                              {bill.icon === 'groceries' ? (
-                                <CartIcon size={16} />
-                              ) : bill.icon === 'dinner' ? (
-                                <UtensilsIcon size={16} />
-                              ) : (
-                                <WifiIcon size={16} />
-                              )}
-                            </div>
-                            <div>
-                              <div
-                                style={{
-                                  fontWeight: 700,
-                                  fontSize: '15px',
-                                  color: '#101D2B',
-                                }}
-                              >
-                                {bill.title}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: '12px',
-                                  color: '#64748B',
-                                  marginTop: '2px',
-                                }}
-                              >
-                                Paid by <strong style={{ color: '#101D2B' }}>{bill.paidBy}</strong>{' '}
-                                • Split among {totalCandidates} candidates
-                              </div>
-                            </div>
-                          </div>
-
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '14px',
-                            }}
-                          >
-                            <div style={{ textAlign: 'right' }}>
-                              <div
-                                style={{
-                                  fontWeight: 800,
-                                  fontSize: '16px',
-                                  color: '#101D2B',
-                                }}
-                              >
-                                ₹{bill.totalRupees.toLocaleString('en-IN')}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: '11px',
-                                  color: '#64748B',
-                                  marginTop: '1px',
-                                }}
-                              >
-                                ₹{Math.round(bill.totalRupees / (totalCandidates || 1))} / candidate
-                              </div>
-                            </div>
-
-                            {/* Status Summary Pill */}
-                            <div>
-                              {isAllSettled ? (
-                                <span className="status-badge-paid">
-                                  <CheckCircleIcon size={13} color="#079B6B" />
-                                  <span>
-                                    Settled ({paidCandidatesCount}/{totalCandidates})
-                                  </span>
-                                </span>
-                              ) : (
-                                <span className="status-badge-pending">
-                                  <span>
-                                    {paidCandidatesCount}/{totalCandidates} Paid
-                                  </span>
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Chevron Toggle Indicator */}
-                            <span
-                              aria-hidden="true"
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                padding: '4px',
-                                color: isExpanded ? '#079B6B' : '#64748B',
+                                gap: '12px',
                               }}
                             >
-                              <ChevronDownIcon
-                                size={18}
-                                rotated={isExpanded}
-                                color={isExpanded ? '#079B6B' : '#64748B'}
-                              />
-                            </span>
-                          </div>
-                        </button>
-
-                        {/* SLIDE DOWN / DROPDOWN FOR INDIVIDUAL CANDIDATES */}
-                        {isExpanded && (
-                          <div className="expense-breakdown-panel">
-                            {/* Breakdown Header Bar */}
-                            <div className="breakdown-header-bar">
-                              <div className="breakdown-title-wrap">
-                                <span className="breakdown-title">Candidate Share Breakdown</span>
-                                <span
+                              <div
+                                className={`expense-icon-box ${
+                                  bill.icon === 'groceries'
+                                    ? 'icon-purple'
+                                    : bill.icon === 'dinner'
+                                      ? 'icon-orange'
+                                      : 'icon-blue'
+                                }`}
+                              >
+                                {bill.icon === 'groceries' ? (
+                                  <CartIcon size={16} />
+                                ) : bill.icon === 'dinner' ? (
+                                  <UtensilsIcon size={16} />
+                                ) : (
+                                  <WifiIcon size={16} />
+                                )}
+                              </div>
+                              <div>
+                                <div
+                                  style={{
+                                    fontWeight: 700,
+                                    fontSize: '15px',
+                                    color: '#101D2B',
+                                  }}
+                                >
+                                  {bill.title}
+                                </div>
+                                <div
                                   style={{
                                     fontSize: '12px',
-                                    color: isAllSettled ? '#079B6B' : '#B45309',
-                                    fontWeight: 600,
+                                    color: '#64748B',
+                                    marginTop: '2px',
                                   }}
                                 >
-                                  {isAllSettled
-                                    ? '• Everyone has settled their share!'
-                                    : `• ₹${unpaidAmount.toLocaleString('en-IN')} still pending`}
-                                </span>
-                              </div>
-
-                              <div style={{ display: 'flex', gap: '8px' }}>
-                                <button
-                                  type="button"
-                                  className="btn-secondary"
-                                  style={{
-                                    fontSize: '11px',
-                                    padding: '3px 10px',
-                                    borderRadius: '6px',
-                                  }}
-                                  onClick={() => handleSetAllCandidatesPaid(bill.id, !isAllSettled)}
-                                >
-                                  {isAllSettled ? 'Mark All Unpaid' : 'Settle All'}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn-secondary"
-                                  style={{
-                                    fontSize: '11px',
-                                    padding: '3px 10px',
-                                    borderRadius: '6px',
-                                  }}
-                                  onClick={() => setPopupExpense(bill)}
-                                >
-                                  Pop-up View ↗
-                                </button>
+                                  Paid by{' '}
+                                  <strong style={{ color: '#101D2B' }}>{bill.paidBy}</strong> •
+                                  Split among {totalCandidates} candidates
+                                </div>
                               </div>
                             </div>
 
-                            {/* Candidate List Cards */}
-                            <div className="candidate-grid">
-                              {bill.shares.map((share) => {
-                                const isPayer = share.name === bill.paidBy
-                                return (
-                                  <div
-                                    key={share.candidateId}
-                                    className={`candidate-row-card ${
-                                      share.isPaid ? 'paid' : 'unpaid'
-                                    }`}
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '14px',
+                              }}
+                            >
+                              <div style={{ textAlign: 'right' }}>
+                                <div
+                                  style={{
+                                    fontWeight: 800,
+                                    fontSize: '16px',
+                                    color: '#101D2B',
+                                  }}
+                                >
+                                  ₹{bill.totalRupees.toLocaleString('en-IN')}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: '11px',
+                                    color: '#64748B',
+                                    marginTop: '1px',
+                                  }}
+                                >
+                                  ₹{Math.round(bill.totalRupees / (totalCandidates || 1))} /
+                                  candidate
+                                </div>
+                              </div>
+
+                              {/* Status Summary Pill */}
+                              <div>
+                                {isAllSettled ? (
+                                  <span className="status-badge-paid">
+                                    <CheckCircleIcon size={13} color="#079B6B" />
+                                    <span>
+                                      Settled ({paidCandidatesCount}/{totalCandidates})
+                                    </span>
+                                  </span>
+                                ) : (
+                                  <span className="status-badge-pending">
+                                    <span>
+                                      {paidCandidatesCount}/{totalCandidates} Paid
+                                    </span>
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Chevron Toggle Indicator */}
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  padding: '4px',
+                                  color: isExpanded ? '#079B6B' : '#64748B',
+                                }}
+                              >
+                                <ChevronDownIcon
+                                  size={18}
+                                  rotated={isExpanded}
+                                  color={isExpanded ? '#079B6B' : '#64748B'}
+                                />
+                              </span>
+                            </div>
+                          </button>
+
+                          {/* SLIDE DOWN / DROPDOWN FOR INDIVIDUAL CANDIDATES */}
+                          {isExpanded && (
+                            <div className="expense-breakdown-panel">
+                              {/* Breakdown Header Bar */}
+                              <div className="breakdown-header-bar">
+                                <div className="breakdown-title-wrap">
+                                  <span className="breakdown-title">Candidate Share Breakdown</span>
+                                  <span
+                                    style={{
+                                      fontSize: '12px',
+                                      color: isAllSettled ? '#079B6B' : '#B45309',
+                                      fontWeight: 600,
+                                    }}
                                   >
-                                    <div className="candidate-info-left">
-                                      <div className={`candidate-avatar ${isPayer ? 'payer' : ''}`}>
-                                        {share.name.charAt(0).toUpperCase()}
-                                      </div>
-                                      <div>
-                                        <div className="candidate-name">
-                                          {share.name}
-                                          {isPayer && (
-                                            <span className="candidate-payer-tag">Payer</span>
-                                          )}
-                                        </div>
-                                        <div className="candidate-share-val">
-                                          Share: <strong>₹{share.amountRupees}</strong>
-                                        </div>
-                                      </div>
-                                    </div>
+                                    {isAllSettled
+                                      ? '• Everyone has settled their share!'
+                                      : `• ₹${unpaidAmount.toLocaleString('en-IN')} still pending`}
+                                  </span>
+                                </div>
 
-                                    <div>
-                                      {share.isPaid ? (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    style={{
+                                      fontSize: '11px',
+                                      padding: '3px 10px',
+                                      borderRadius: '6px',
+                                    }}
+                                    onClick={() =>
+                                      handleSetAllCandidatesPaid(bill.id, !isAllSettled)
+                                    }
+                                  >
+                                    {isAllSettled ? 'Mark All Unpaid' : 'Settle All'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    style={{
+                                      fontSize: '11px',
+                                      padding: '3px 10px',
+                                      borderRadius: '6px',
+                                    }}
+                                    onClick={() => setPopupExpense(bill)}
+                                  >
+                                    Pop-up View ↗
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Candidate List Cards */}
+                              <div className="candidate-grid">
+                                {bill.shares.map((share) => {
+                                  const isPayer = share.name === bill.paidBy
+                                  return (
+                                    <div
+                                      key={share.candidateId}
+                                      className={`candidate-row-card ${
+                                        share.isPaid ? 'paid' : 'unpaid'
+                                      }`}
+                                    >
+                                      <div className="candidate-info-left">
                                         <div
-                                          style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                          }}
+                                          className={`candidate-avatar ${isPayer ? 'payer' : ''}`}
                                         >
-                                          <span className="status-badge-paid">✓ Paid</span>
-                                          <button
-                                            type="button"
-                                            className="btn-candidate-unsettle"
-                                            title="Mark as unpaid"
-                                            onClick={() =>
-                                              handleToggleCandidatePayment(bill.id, share.name)
-                                            }
-                                          >
-                                            Undo
-                                          </button>
+                                          {share.name.charAt(0).toUpperCase()}
                                         </div>
-                                      ) : (
-                                        <div
-                                          style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                          }}
-                                        >
-                                          <span className="status-badge-pending">Unpaid</span>
-                                          <button
-                                            type="button"
-                                            className="btn-candidate-settle"
-                                            onClick={() =>
-                                              handleToggleCandidatePayment(bill.id, share.name)
-                                            }
-                                          >
-                                            Settle ₹{share.amountRupees}
-                                          </button>
+                                        <div>
+                                          <div className="candidate-name">
+                                            {share.name}
+                                            {isPayer && (
+                                              <span className="candidate-payer-tag">Payer</span>
+                                            )}
+                                          </div>
+                                          <div className="candidate-share-val">
+                                            Share: <strong>₹{share.amountRupees}</strong>
+                                          </div>
                                         </div>
-                                      )}
+                                      </div>
+
+                                      <div>
+                                        {share.isPaid ? (
+                                          <div
+                                            style={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '6px',
+                                            }}
+                                          >
+                                            <span className="status-badge-paid">✓ Paid</span>
+                                            <button
+                                              type="button"
+                                              className="btn-candidate-unsettle"
+                                              title="Mark as unpaid"
+                                              onClick={() =>
+                                                handleToggleCandidatePayment(bill.id, share.name)
+                                              }
+                                            >
+                                              Undo
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <div
+                                            style={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '6px',
+                                            }}
+                                          >
+                                            <span className="status-badge-pending">Unpaid</span>
+                                            <button
+                                              type="button"
+                                              className="btn-candidate-settle"
+                                              onClick={() =>
+                                                handleToggleCandidatePayment(bill.id, share.name)
+                                              }
+                                            >
+                                              Settle ₹{share.amountRupees}
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                )
-                              })}
+                                  )
+                                })}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* DEDICATED CANDIDATE BREAKDOWN POP-UP MODAL (IF USER CLICKS POP-UP VIEW) */}
+      {/* DEDICATED CANDIDATE BREAKDOWN POP-UP MODAL */}
       {popupExpense && (
         <div
           className="modal-overlay"

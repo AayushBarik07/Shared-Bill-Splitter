@@ -17,7 +17,7 @@ export function FloatingCard({ onCardClick }: FloatingCardProps) {
       type="button"
       className="floating-dashboard-card"
       onClick={onCardClick}
-      title="Click to explore Flat 4B"
+      aria-label="View Flat 4B shared dashboard"
       style={{
         cursor: onCardClick ? 'pointer' : 'default',
         border: '1px solid rgba(228, 233, 237, 0.85)',

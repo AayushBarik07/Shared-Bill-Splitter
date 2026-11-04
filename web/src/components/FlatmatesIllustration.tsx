@@ -1,7 +1,7 @@
 export function FlatmatesIllustration({ className = '' }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 620 480"
+      viewBox="0 0 680 480"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
@@ -16,31 +16,33 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
         </linearGradient>
       </defs>
 
-      {/* Background Soft Rolling Hills */}
+      {/* Background Soft Rolling Hills across full scene */}
       <path
-        d="M20 380C80 320 180 300 280 340C380 380 460 320 540 310C580 305 605 315 620 325V480H20V380Z"
+        d="M0 380C60 320 160 300 260 340C360 380 460 320 560 310C620 305 650 315 680 325V480H0V380Z"
         fill="url(#hillGrad1)"
         opacity="0.65"
       />
       <path
-        d="M280 380C340 330 420 315 500 345C560 368 600 340 620 325V480H280V380Z"
+        d="M240 380C300 330 380 315 460 345C520 368 620 340 680 320V480H240V380Z"
         fill="#079B6B"
-        opacity="0.9"
+        opacity="0.85"
       />
 
       {/* Distant Apartment Buildings on the right hill */}
-      <g opacity="0.45" transform="translate(540, 200)">
+      <g opacity="0.45" transform="translate(560, 180)">
         {/* Building 1 */}
-        <rect x="0" y="30" width="28" height="60" rx="3" fill="#087F5B" />
+        <rect x="0" y="30" width="28" height="70" rx="3" fill="#087F5B" />
         <rect x="5" y="36" width="6" height="6" rx="1" fill="#DDF8EC" />
         <rect x="17" y="36" width="6" height="6" rx="1" fill="#DDF8EC" />
         <rect x="5" y="48" width="6" height="6" rx="1" fill="#DDF8EC" />
         <rect x="17" y="48" width="6" height="6" rx="1" fill="#DDF8EC" />
         <rect x="5" y="60" width="6" height="6" rx="1" fill="#DDF8EC" />
         <rect x="17" y="60" width="6" height="6" rx="1" fill="#DDF8EC" />
+        <rect x="5" y="72" width="6" height="6" rx="1" fill="#DDF8EC" />
+        <rect x="17" y="72" width="6" height="6" rx="1" fill="#DDF8EC" />
 
         {/* Building 2 */}
-        <rect x="34" y="10" width="32" height="80" rx="3" fill="#079B6B" />
+        <rect x="34" y="10" width="34" height="90" rx="3" fill="#079B6B" />
         <rect x="40" y="18" width="7" height="7" rx="1" fill="#FFFFFF" opacity="0.9" />
         <rect x="53" y="18" width="7" height="7" rx="1" fill="#FFFFFF" opacity="0.9" />
         <rect x="40" y="32" width="7" height="7" rx="1" fill="#FFFFFF" opacity="0.9" />
@@ -49,38 +51,44 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
         <rect x="53" y="46" width="7" height="7" rx="1" fill="#FFFFFF" opacity="0.9" />
         <rect x="40" y="60" width="7" height="7" rx="1" fill="#FFFFFF" opacity="0.9" />
         <rect x="53" y="60" width="7" height="7" rx="1" fill="#FFFFFF" opacity="0.9" />
+        <rect x="40" y="74" width="7" height="7" rx="1" fill="#FFFFFF" opacity="0.9" />
+        <rect x="53" y="74" width="7" height="7" rx="1" fill="#FFFFFF" opacity="0.9" />
       </g>
 
       {/* Floating Soft Clouds */}
       <g fill="#D7F3E5" opacity="0.7">
-        <path d="M560 120C560 112 568 106 576 106C580 102 586 100 592 100C601 100 608 106 610 114C615 115 620 119 620 125C620 131 615 136 609 136H570C564 136 560 131 560 125C560 123 560 121 560 120Z" />
+        <path d="M580 110C580 102 588 96 596 96C600 92 606 90 612 90C621 90 628 96 630 104C635 105 640 109 640 115C640 121 635 126 629 126H590C584 126 580 121 580 115C580 113 580 111 580 110Z" />
       </g>
 
-      {/* Mint Radiate Marks above the Flatmates (from reference) */}
+      {/* Mint Radiate Marks above the Flatmates (aligned above girl's head) */}
       <g stroke="#079B6B" strokeWidth="3" strokeLinecap="round" opacity="0.9">
-        <line x1="340" y1="110" x2="335" y2="124" />
-        <line x1="352" y1="102" x2="352" y2="118" />
-        <line x1="364" y1="110" x2="369" y2="124" />
+        <line x1="200" y1="110" x2="195" y2="124" />
+        <line x1="212" y1="102" x2="212" y2="118" />
+        <line x1="224" y1="110" x2="229" y2="124" />
       </g>
+
+      {/* ======================================================== */}
+      {/* FLATMATES GROUP (Shifted left to leave room for the card) */}
+      {/* ======================================================== */}
 
       {/* PERSON 3: Guy on the right */}
       <g id="person-right">
         <path
-          d="M380 320C380 270 415 250 445 250C475 250 510 270 510 320V370H380V320Z"
+          d="M245 320C245 270 280 250 310 250C340 250 375 270 375 320V370H245V320Z"
           fill="#FFFFFF"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinejoin="round"
         />
         <path
-          d="M430 250L445 275L460 250"
+          d="M295 250L310 275L325 250"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
-        <path d="M435 240V255H455V240" fill="#FDE7DA" stroke="#101D2B" strokeWidth="2.5" />
+        <path d="M300 240V255H320V240" fill="#FDE7DA" stroke="#101D2B" strokeWidth="2.5" />
         <ellipse
-          cx="445"
+          cx="310"
           cy="205"
           rx="26"
           ry="32"
@@ -89,33 +97,33 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
           strokeWidth="2.5"
         />
         <path
-          d="M420 200C418 175 432 165 448 165C465 165 476 178 474 200C474 190 468 180 456 180C440 180 435 190 420 200Z"
+          d="M285 200C283 175 297 165 313 165C330 165 341 178 339 200C339 190 333 180 321 180C305 180 300 190 285 200Z"
           fill="#1E293B"
         />
         <path
-          d="M420 200C422 170 435 160 452 160C468 160 478 174 474 205C468 186 450 178 438 182C428 186 422 195 420 200Z"
+          d="M285 200C287 170 300 160 317 160C333 160 343 174 339 205C333 186 315 178 303 182C293 186 287 195 285 200Z"
           fill="#101D2B"
           stroke="#101D2B"
           strokeWidth="2"
           strokeLinejoin="round"
         />
         <path
-          d="M432 205C434 203 438 203 440 205"
+          d="M297 205C299 203 303 203 305 205"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         <path
-          d="M450 205C452 203 456 203 458 205"
+          d="M315 205C317 203 321 203 323 205"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
-        <circle cx="436" cy="208" r="2.2" fill="#101D2B" />
-        <circle cx="454" cy="208" r="2.2" fill="#101D2B" />
-        <path d="M445 214V218" stroke="#101D2B" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="301" cy="208" r="2.2" fill="#101D2B" />
+        <circle cx="319" cy="208" r="2.2" fill="#101D2B" />
+        <path d="M310 214V218" stroke="#101D2B" strokeWidth="2" strokeLinecap="round" />
         <path
-          d="M436 224C440 230 450 230 454 224"
+          d="M301 224C305 230 315 230 319 224"
           fill="#FFFFFF"
           stroke="#101D2B"
           strokeWidth="2.5"
@@ -126,20 +134,20 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
       {/* PERSON 2: Girl in the Center */}
       <g id="person-center">
         <path
-          d="M305 210C305 160 380 160 380 210C390 260 385 300 375 320C365 315 360 290 360 290L325 290C325 290 320 315 310 320C300 300 295 260 305 210Z"
+          d="M170 210C170 160 245 160 245 210C255 260 250 300 240 320C230 315 225 290 225 290L190 290C190 290 185 315 175 320C165 300 160 260 170 210Z"
           fill="#101D2B"
           stroke="#101D2B"
           strokeWidth="2"
         />
         <path
-          d="M310 310C315 270 370 270 375 310L385 370H300L310 310Z"
+          d="M175 310C180 270 235 270 240 310L250 370H165L175 310Z"
           fill="#FFFFFF"
           stroke="#101D2B"
           strokeWidth="2.5"
         />
-        <path d="M336 250V266H350V250" fill="#FCEADE" stroke="#101D2B" strokeWidth="2" />
+        <path d="M201 250V266H215V250" fill="#FCEADE" stroke="#101D2B" strokeWidth="2" />
         <ellipse
-          cx="343"
+          cx="208"
           cy="216"
           rx="25"
           ry="30"
@@ -148,42 +156,42 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
           strokeWidth="2.5"
         />
         <path
-          d="M320 206C324 180 340 172 355 174C370 176 374 190 372 210C366 186 352 184 344 190C336 196 328 214 320 206Z"
+          d="M185 206C189 180 205 172 220 174C235 176 239 190 237 210C231 186 217 184 209 190C201 196 193 214 185 206Z"
           fill="#101D2B"
         />
         <path
-          d="M331 210C334 205 338 205 341 210"
+          d="M196 210C199 205 203 205 206 210"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         <path
-          d="M349 210C352 205 356 205 359 210"
+          d="M214 210C217 205 221 205 224 210"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         <path
-          d="M333 226C333 238 355 238 355 226Z"
+          d="M198 226C198 238 220 238 220 226Z"
           fill="#D94E4E"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinejoin="round"
         />
         <path
-          d="M335 228C340 231 348 231 353 228"
+          d="M200 228C205 231 213 231 218 228"
           stroke="#FFFFFF"
           strokeWidth="2"
           strokeLinecap="round"
         />
         <path
-          d="M312 330C320 340 330 345 338 340"
+          d="M177 330C185 340 195 345 203 340"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         <rect
-          x="338"
+          x="203"
           y="324"
           width="22"
           height="24"
@@ -193,7 +201,7 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
           strokeWidth="2.5"
         />
         <path
-          d="M360 330C364 330 366 334 366 338C366 342 364 346 360 346"
+          d="M225 330C229 330 231 334 231 338C231 342 229 346 225 346"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
@@ -203,21 +211,21 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
       {/* PERSON 1: Guy on Left (Spectacles, Green Shirt, Phone) */}
       <g id="person-left">
         <path
-          d="M240 310C240 260 295 250 315 255L325 370H230L240 310Z"
+          d="M105 310C105 260 160 250 180 255L190 370H95L105 310Z"
           fill="#079B6B"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinejoin="round"
         />
         <path
-          d="M245 320C260 335 280 340 295 330"
+          d="M110 320C125 335 145 340 160 330"
           fill="none"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         <rect
-          x="285"
+          x="150"
           y="288"
           width="24"
           height="42"
@@ -226,40 +234,40 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
           stroke="#101D2B"
           strokeWidth="2"
         />
-        <rect x="288" y="293" width="18" height="30" rx="2" fill="#DDF8EC" />
+        <rect x="153" y="293" width="18" height="30" rx="2" fill="#DDF8EC" />
         <line
-          x1="292"
+          x1="157"
           y1="300"
-          x2="302"
+          x2="167"
           y2="300"
           stroke="#079B6B"
           strokeWidth="2"
           strokeLinecap="round"
         />
         <line
-          x1="292"
+          x1="157"
           y1="306"
-          x2="299"
+          x2="164"
           y2="306"
           stroke="#079B6B"
           strokeWidth="1.5"
           strokeLinecap="round"
         />
         <path
-          d="M280 310C285 308 288 312 288 316"
+          d="M145 310C150 308 153 312 153 316"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         <path
-          d="M308 310C305 312 305 316 308 318"
+          d="M173 310C170 312 170 316 173 318"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
-        <path d="M276 244V260H290V244" fill="#FCEADE" stroke="#101D2B" strokeWidth="2" />
+        <path d="M141 244V260H155V244" fill="#FCEADE" stroke="#101D2B" strokeWidth="2" />
         <ellipse
-          cx="282"
+          cx="147"
           cy="210"
           rx="25"
           ry="31"
@@ -268,20 +276,20 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
           strokeWidth="2.5"
         />
         <path
-          d="M260 205C255 178 272 160 292 162C310 164 316 182 312 205C305 180 290 176 278 184C268 190 264 200 260 205Z"
+          d="M125 205C120 178 137 160 157 162C175 164 181 182 177 205C170 180 155 176 143 184C133 190 129 200 125 205Z"
           fill="#101D2B"
           stroke="#101D2B"
           strokeWidth="2"
           strokeLinejoin="round"
         />
-        <circle cx="273" cy="208" r="9" fill="none" stroke="#101D2B" strokeWidth="2.5" />
-        <circle cx="293" cy="208" r="9" fill="none" stroke="#101D2B" strokeWidth="2.5" />
-        <line x1="282" y1="208" x2="284" y2="208" stroke="#101D2B" strokeWidth="2.5" />
-        <circle cx="273" cy="208" r="2.5" fill="#101D2B" />
-        <circle cx="293" cy="208" r="2.5" fill="#101D2B" />
-        <path d="M282 214V218" stroke="#101D2B" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="138" cy="208" r="9" fill="none" stroke="#101D2B" strokeWidth="2.5" />
+        <circle cx="158" cy="208" r="9" fill="none" stroke="#101D2B" strokeWidth="2.5" />
+        <line x1="147" y1="208" x2="149" y2="208" stroke="#101D2B" strokeWidth="2.5" />
+        <circle cx="138" cy="208" r="2.5" fill="#101D2B" />
+        <circle cx="158" cy="208" r="2.5" fill="#101D2B" />
+        <path d="M147 214V218" stroke="#101D2B" strokeWidth="2" strokeLinecap="round" />
         <path
-          d="M276 225C280 230 288 230 292 225"
+          d="M141 225C145 230 153 230 157 225"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
@@ -291,16 +299,16 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
       {/* TABLE WITH PIZZA & COFFEE MUGS */}
       <g id="table-scene">
         <line
-          x1="180"
+          x1="50"
           y1="365"
-          x2="480"
+          x2="350"
           y2="365"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         <rect
-          x="250"
+          x="115"
           y="342"
           width="22"
           height="23"
@@ -310,13 +318,13 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
           strokeWidth="2.5"
         />
         <path
-          d="M250 348C244 348 242 352 242 356C242 360 244 363 250 363"
+          d="M115 348C109 348 107 352 107 356C107 360 109 363 115 363"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         <rect
-          x="382"
+          x="247"
           y="342"
           width="22"
           height="23"
@@ -326,13 +334,13 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
           strokeWidth="2.5"
         />
         <path
-          d="M404 348C410 348 412 352 412 356C412 360 410 363 404 363"
+          d="M269 348C275 348 277 352 277 356C277 360 275 363 269 363"
           stroke="#101D2B"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
         <ellipse
-          cx="328"
+          cx="193"
           cy="365"
           rx="36"
           ry="14"
@@ -341,16 +349,16 @@ export function FlatmatesIllustration({ className = '' }: { className?: string }
           strokeWidth="2.5"
         />
         <path
-          d="M298 365C305 356 350 356 358 365C350 374 305 374 298 365Z"
+          d="M163 365C170 356 215 356 223 365C215 374 170 374 163 365Z"
           fill="#FDE68A"
           stroke="#101D2B"
           strokeWidth="2"
         />
-        <line x1="328" y1="358" x2="328" y2="372" stroke="#101D2B" strokeWidth="1.5" />
-        <line x1="306" y1="362" x2="350" y2="368" stroke="#101D2B" strokeWidth="1.5" />
-        <circle cx="316" cy="364" r="2.5" fill="#EF4444" />
-        <circle cx="338" cy="363" r="2.5" fill="#EF4444" />
-        <circle cx="327" cy="368" r="2.2" fill="#10B981" />
+        <line x1="193" y1="358" x2="193" y2="372" stroke="#101D2B" strokeWidth="1.5" />
+        <line x1="171" y1="362" x2="215" y2="368" stroke="#101D2B" strokeWidth="1.5" />
+        <circle cx="181" cy="364" r="2.5" fill="#EF4444" />
+        <circle cx="203" cy="363" r="2.5" fill="#EF4444" />
+        <circle cx="192" cy="368" r="2.2" fill="#10B981" />
       </g>
     </svg>
   )
