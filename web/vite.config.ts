@@ -4,6 +4,9 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react()],
+  build: {
+    chunkSizeWarningLimit: 1000,
+  },
   server: {
     proxy: {
       '/api': 'http://localhost:8787',
