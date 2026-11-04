@@ -4,20 +4,20 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler d1 migrations apply DB --local && wrangler dev",
+    "start": "wrangler dev --ip 0.0.0.0 --port ${PORT:-8787}",
     "deploy": "wrangler deploy",
     "cf-typegen": "wrangler types",
-    "postinstall": "wrangler types",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "hono": "^4.13.14"
+    "hono": "^4.13.14",
+    "wrangler": "^4.156.0"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.4.11",
     "@types/node": "^26.6.6",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.5",
-    "wrangler": "^4.156.0"
+    "vitest": "^5.0.5"
   }
 }
